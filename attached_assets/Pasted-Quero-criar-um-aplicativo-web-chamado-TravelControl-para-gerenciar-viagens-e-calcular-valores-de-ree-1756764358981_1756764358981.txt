@@ -1,0 +1,111 @@
+Quero criar um aplicativo web chamado TravelControl para gerenciar viagens e calcular valores de reembolso de combustível, estacionamento e outras despesas. O design deve seguir um layout moderno e escuro (dark mode) como mostrado nas imagens enviadas, com um menu lateral fixo e páginas principais bem organizadas.
+
+Funcionalidades principais:
+
+Dashboard
+
+Exibir cards com:
+
+Total de viagens no mês.
+
+Quilometragem total percorrida.
+
+Gasto total com combustível e despesas.
+
+Rotas cadastradas.
+
+Gráficos:
+
+Viagens por mês.
+
+Quilometragem mensal.
+
+Gastos mensais.
+
+Rotas mais utilizadas.
+
+Nova Viagem
+
+Formulário para registrar viagens com os seguintes campos:
+
+Data e hora.
+
+Origem.
+
+Destino (quando já houver rota cadastrada, preencher KM automaticamente).
+
+Quilometragem (KM).
+
+Despesas adicionais (estacionamento, pedágio, outras).
+
+Campo de observação.
+
+Cálculo automático do custo total da viagem, considerando combustível + despesas.
+
+Mostrar um resumo de custos antes de salvar a viagem.
+
+Relatórios
+
+Filtros por período, origem, destino e colaborador.
+
+Exibir:
+
+Total de viagens.
+
+Total de KM.
+
+Gasto total (combustível + extras).
+
+Gráficos de:
+
+Viagens por mês.
+
+KM por mês.
+
+Botão para exportar em CSV.
+
+Configurações
+
+Dados pessoais (nome do colaborador).
+
+Aparência (modo escuro ou claro).
+
+Configuração de cálculo do custo por KM:
+
+Usuário informa o preço do combustível por litro.
+
+O sistema divide automaticamente esse valor por 4 para obter o custo por KM.
+
+Documentação (ajuda interna)
+
+Explicação rápida sobre funcionalidades.
+
+Como usar o sistema.
+
+Fórmulas importantes usadas para os cálculos (ex.: custo combustível por KM = preço do litro ÷ 4).
+
+Regras de cálculo:
+
+Custo por KM = Preço do combustível por litro ÷ 4.
+
+Custo de combustível da viagem = KM percorrido × custo por KM.
+
+Custo total da viagem = combustível + estacionamento + pedágios + outras despesas.
+
+Banco de dados:
+
+Tabelas principais:
+
+Viagens (id, data, origem, destino, km, custo_combustível, despesas, total).
+
+Rotas (origem, destino, km).
+
+Usuário (nome, configurações).
+
+Estilo:
+
+Layout dark mode com azul, roxo e verde como cores de destaque.
+
+Gráficos modernos e interativos.
+
+Cards arredondados com ícones intuitivos.
