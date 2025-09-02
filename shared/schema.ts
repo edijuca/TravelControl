@@ -7,9 +7,15 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  email: text("email"),
+  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  vehicle: text("vehicle").notNull(), // "Carro" or "Moto"
+  licensePlate: text("license_plate").notNull(),
   fuelPricePerLiter: decimal("fuel_price_per_liter", { precision: 10, scale: 2 }).default("6.00"),
   darkMode: boolean("dark_mode").default(true),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
@@ -68,6 +74,34 @@ export const tripsRelations = relations(trips, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  resetToken: true,
+  resetTokenExpiry: true,
+});
+
+export const registerUserSchema = insertUserSchema.extend({
+  confirmPassword: z.string(),
+  vehicle: z.enum(["Carro", "Moto"]),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+export const loginSchema = z.object({
+  emailOrUsername: z.string().min(1, "Email ou usuário é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
+export const newPasswordSchema = z.object({
+  token: z.string(),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
 export const insertRouteSchema = createInsertSchema(routes).omit({
@@ -85,6 +119,10 @@ export const insertTripSchema = createInsertSchema(trips).omit({
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type RegisterUser = z.infer<typeof registerUserSchema>;
+export type LoginUser = z.infer<typeof loginSchema>;
+export type ResetPassword = z.infer<typeof resetPasswordSchema>;
+export type NewPassword = z.infer<typeof newPasswordSchema>;
 export type Route = typeof routes.$inferSelect;
 export type InsertRoute = z.infer<typeof insertRouteSchema>;
 export type Trip = typeof trips.$inferSelect;
