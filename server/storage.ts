@@ -152,22 +152,26 @@ export class DatabaseStorage implements IStorage {
     origin?: string;
     destination?: string;
   }): Promise<Trip[]> {
-    let query = db.select().from(trips).where(eq(trips.userId, userId));
+    const conditions = [eq(trips.userId, userId)];
     
     if (filters?.startDate) {
-      query = query.where(gte(trips.date, new Date(filters.startDate)));
+      conditions.push(gte(trips.date, new Date(filters.startDate)));
     }
     if (filters?.endDate) {
-      query = query.where(lte(trips.date, new Date(filters.endDate)));
+      conditions.push(lte(trips.date, new Date(filters.endDate)));
     }
     if (filters?.origin) {
-      query = query.where(eq(trips.origin, filters.origin));
+      conditions.push(eq(trips.origin, filters.origin));
     }
     if (filters?.destination) {
-      query = query.where(eq(trips.destination, filters.destination));
+      conditions.push(eq(trips.destination, filters.destination));
     }
     
-    return await query.orderBy(desc(trips.date));
+    return await db
+      .select()
+      .from(trips)
+      .where(and(...conditions))
+      .orderBy(desc(trips.date));
   }
 
   async createTrip(insertTrip: InsertTrip): Promise<Trip> {
