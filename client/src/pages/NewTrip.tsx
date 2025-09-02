@@ -100,10 +100,17 @@ export default function NewTrip() {
       queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
       queryClient.invalidateQueries({ queryKey: ['/api/analytics'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.log("Trip creation error:", error);
+      let errorMessage = "Erro ao registrar viagem. Tente novamente.";
+      
+      if (error?.errors) {
+        errorMessage = `Erro de validação: ${error.errors.map((e: any) => e.message).join(", ")}`;
+      }
+      
       toast({
         title: "Erro",
-        description: "Erro ao registrar viagem. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -130,6 +137,8 @@ export default function NewTrip() {
   }, [watchedValues, user?.fuelPricePerLiter]);
 
   const onSubmit = (data: TripFormData) => {
+    console.log("Form data:", data);
+    console.log("Form errors:", form.formState.errors);
     createTripMutation.mutate(data);
   };
 

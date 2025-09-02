@@ -107,13 +107,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/trips", async (req, res) => {
     try {
+      console.log("Received trip data:", req.body);
       const tripData = insertTripSchema.parse(req.body);
+      console.log("Parsed trip data:", tripData);
       const trip = await storage.createTrip(tripData);
       res.status(201).json(trip);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.log("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid trip data", errors: error.errors });
       }
+      console.log("Server error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
