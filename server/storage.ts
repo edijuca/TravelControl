@@ -1,13 +1,18 @@
 import { users, routes, trips, type User, type InsertUser, type Route, type InsertRoute, type Trip, type InsertTrip } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, or } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmailOrUsername(emailOrUsername: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User>;
+  setResetToken(userId: string, token: string, expiry: Date): Promise<void>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  clearResetToken(userId: string): Promise<void>;
   
   // Route operations
   getRoutes(userId: string): Promise<Route[]>;
@@ -72,6 +77,44 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmailOrUsername(emailOrUsername: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername)));
+    return user || undefined;
+  }
+
+  async setResetToken(userId: string, token: string, expiry: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ resetToken: token, resetTokenExpiry: expiry })
+      .where(eq(users.id, userId));
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.resetToken, token),
+        gte(users.resetTokenExpiry, new Date())
+      ));
+    return user || undefined;
+  }
+
+  async clearResetToken(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ resetToken: null, resetTokenExpiry: null })
+      .where(eq(users.id, userId));
   }
 
   async getRoutes(userId: string): Promise<Route[]> {

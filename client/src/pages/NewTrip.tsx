@@ -12,10 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { calculateCostPerKm, calculateFuelCost, calculateTotalCost, formatCurrency } from "@/lib/calculations";
+import { useAuth } from "@/hooks/useAuth";
 import { Save } from "lucide-react";
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-1";
 
 const tripSchema = z.object({
   date: z.string().min(1, "Data é obrigatória"),
@@ -33,6 +31,7 @@ type TripFormData = z.infer<typeof tripSchema>;
 export default function NewTrip() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [costs, setCosts] = useState({
     fuel: 0,
     parking: 0,
@@ -42,11 +41,13 @@ export default function NewTrip() {
   });
 
   const { data: routes } = useQuery({
-    queryKey: ['/api/routes', MOCK_USER_ID],
+    queryKey: ['/api/routes', user?.id],
+    enabled: !!user?.id,
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['/api/users', MOCK_USER_ID],
+  const { data: userSettings } = useQuery({
+    queryKey: ['/api/users', user?.id],
+    enabled: !!user?.id,
   });
 
   const form = useForm<TripFormData>({
@@ -83,7 +84,7 @@ export default function NewTrip() {
         otherCost: data.otherCost.toString(),
         totalCost: totalCost.toString(),
         notes: data.notes || "",
-        userId: MOCK_USER_ID,
+        userId: user?.id,
         routeId: selectedRoute?.id || null,
       };
 
