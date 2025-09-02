@@ -73,7 +73,7 @@ export default function NewTrip() {
       const selectedRoute = routes?.find(r => r.origin === data.origin && r.destination === data.destination);
 
       const tripData = {
-        date: new Date(data.date),
+        date: data.date,
         origin: data.origin,
         destination: data.destination,
         kilometers: data.kilometers,
@@ -87,7 +87,6 @@ export default function NewTrip() {
         routeId: selectedRoute?.id || null,
       };
 
-      console.log("Sending trip data:", tripData);
       return apiRequest('POST', '/api/trips', tripData);
     },
     onSuccess: () => {
@@ -137,8 +136,6 @@ export default function NewTrip() {
   }, [watchedValues, user?.fuelPricePerLiter]);
 
   const onSubmit = (data: TripFormData) => {
-    console.log("Form data:", data);
-    console.log("Form errors:", form.formState.errors);
     createTripMutation.mutate(data);
   };
 
