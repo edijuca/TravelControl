@@ -70,18 +70,24 @@ export default function NewTrip() {
       const fuelCost = calculateFuelCost(data.kilometers, costPerKm);
       const totalCost = calculateTotalCost(fuelCost, data.parkingCost, data.tollCost, data.otherCost);
 
+      const selectedRoute = routes?.find(r => r.origin === data.origin && r.destination === data.destination);
+
       const tripData = {
-        ...data,
         date: new Date(data.date),
+        origin: data.origin,
+        destination: data.destination,
+        kilometers: data.kilometers,
         fuelCost: fuelCost.toString(),
         parkingCost: data.parkingCost.toString(),
         tollCost: data.tollCost.toString(),
         otherCost: data.otherCost.toString(),
         totalCost: totalCost.toString(),
+        notes: data.notes || "",
         userId: MOCK_USER_ID,
-        routeId: routes?.find(r => `${r.origin} → ${r.destination}` === data.destination)?.id,
+        routeId: selectedRoute?.id || null,
       };
 
+      console.log("Sending trip data:", tripData);
       return apiRequest('POST', '/api/trips', tripData);
     },
     onSuccess: () => {
@@ -130,7 +136,7 @@ export default function NewTrip() {
   const handleRouteSelect = (value: string) => {
     const route = routes?.find(r => `${r.origin} → ${r.destination}` === value);
     if (route) {
-      form.setValue("destination", value);
+      form.setValue("destination", route.destination);
       form.setValue("kilometers", route.kilometers);
     }
   };
@@ -196,7 +202,7 @@ export default function NewTrip() {
                   </div>
                   <div>
                     <Label htmlFor="destination">Destino</Label>
-                    <Select onValueChange={handleRouteSelect} value={form.watch("destination")}>
+                    <Select onValueChange={handleRouteSelect} value={destinationOptions.find(r => r.destination === form.watch("destination")) ? `${form.watch("origin")} → ${form.watch("destination")}` : ""}>
                       <SelectTrigger data-testid="select-destination">
                         <SelectValue placeholder="Selecione o destino" />
                       </SelectTrigger>
