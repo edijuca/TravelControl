@@ -78,6 +78,8 @@ export const insertRouteSchema = createInsertSchema(routes).omit({
 export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
   createdAt: true,
+}).extend({
+  date: z.string().transform((val) => new Date(val)),
 });
 
 // Types
