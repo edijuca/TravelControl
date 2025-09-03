@@ -16,11 +16,10 @@ import {
 import { Search, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/calculations";
 import type { Trip } from "@shared/schema";
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-1";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Reports() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
@@ -29,7 +28,8 @@ export default function Reports() {
   });
 
   const { data: trips, isLoading } = useQuery<Trip[]>({
-    queryKey: ['/api/trips', MOCK_USER_ID, filters],
+    queryKey: ['/api/trips', user?.id, filters],
+    enabled: !!user?.id,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.startDate) params.append('startDate', filters.startDate);
@@ -37,14 +37,15 @@ export default function Reports() {
       if (filters.origin) params.append('origin', filters.origin);
       if (filters.destination) params.append('destination', filters.destination);
       
-      const response = await fetch(`/api/trips/${MOCK_USER_ID}?${params}`);
+      const response = await fetch(`/api/trips/${user?.id}?${params}`);
       if (!response.ok) throw new Error('Failed to fetch trips');
       return response.json();
     },
   });
 
   const { data: routes } = useQuery({
-    queryKey: ['/api/routes', MOCK_USER_ID],
+    queryKey: ['/api/routes', user?.id],
+    enabled: !!user?.id,
   });
 
   const handleExportCSV = async () => {
@@ -55,7 +56,7 @@ export default function Reports() {
       if (filters.origin) params.append('origin', filters.origin);
       if (filters.destination) params.append('destination', filters.destination);
 
-      const response = await fetch(`/api/trips/${MOCK_USER_ID}/export?${params}`);
+      const response = await fetch(`/api/trips/${user?.id}/export?${params}`);
       if (!response.ok) throw new Error('Failed to export data');
 
       const blob = await response.blob();
@@ -117,14 +118,14 @@ export default function Reports() {
             <div>
               <Label htmlFor="origin">Origem</Label>
               <Select 
-                value={filters.origin} 
-                onValueChange={(value) => setFilters(prev => ({ ...prev, origin: value }))}
+                value={filters.origin || "all"} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, origin: value === "all" ? "" : value }))}
               >
                 <SelectTrigger data-testid="select-filter-origin">
                   <SelectValue placeholder="Todas as origens" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as origens</SelectItem>
+                  <SelectItem value="all">Todas as origens</SelectItem>
                   {originOptions.map((origin) => (
                     <SelectItem key={origin} value={origin}>
                       {origin}
@@ -136,14 +137,14 @@ export default function Reports() {
             <div>
               <Label htmlFor="destination">Destino</Label>
               <Select 
-                value={filters.destination} 
-                onValueChange={(value) => setFilters(prev => ({ ...prev, destination: value }))}
+                value={filters.destination || "all"} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, destination: value === "all" ? "" : value }))}
               >
                 <SelectTrigger data-testid="select-filter-destination">
                   <SelectValue placeholder="Todos os destinos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os destinos</SelectItem>
+                  <SelectItem value="all">Todos os destinos</SelectItem>
                   {destinationOptions.map((destination) => (
                     <SelectItem key={destination} value={destination}>
                       {destination}

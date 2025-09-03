@@ -18,9 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Route, Edit2, Trash2 } from "lucide-react";
 import type { Route as RouteType } from "@shared/schema";
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-1";
+import { useAuth } from "@/hooks/useAuth";
 
 const routeSchema = z.object({
   origin: z.string().min(1, "Origem é obrigatória"),
@@ -33,11 +31,13 @@ type RouteFormData = z.infer<typeof routeSchema>;
 export default function Routes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<RouteType | null>(null);
 
   const { data: routes, isLoading } = useQuery<RouteType[]>({
-    queryKey: ['/api/routes', MOCK_USER_ID],
+    queryKey: ['/api/routes', user?.id],
+    enabled: !!user?.id,
   });
 
   const form = useForm<RouteFormData>({
@@ -53,7 +53,7 @@ export default function Routes() {
     mutationFn: async (data: RouteFormData) => {
       const routeData = {
         ...data,
-        userId: MOCK_USER_ID,
+        userId: user?.id,
       };
       return apiRequest('POST', '/api/routes', routeData);
     },
