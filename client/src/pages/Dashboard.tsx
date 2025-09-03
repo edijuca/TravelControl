@@ -13,21 +13,23 @@ import {
 } from "recharts";
 import { Car, Route, DollarSign, MapPin } from "lucide-react";
 import { formatCurrency } from "@/lib/calculations";
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-1";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/analytics/stats', MOCK_USER_ID],
+    queryKey: ['/api/analytics/stats', user?.id],
+    enabled: !!user?.id,
   });
 
   const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
-    queryKey: ['/api/analytics/monthly', MOCK_USER_ID],
+    queryKey: ['/api/analytics/monthly', user?.id],
+    enabled: !!user?.id,
   });
 
   const { data: topRoutes, isLoading: routesLoading } = useQuery({
-    queryKey: ['/api/analytics/top-routes', MOCK_USER_ID],
+    queryKey: ['/api/analytics/top-routes', user?.id],
+    enabled: !!user?.id,
   });
 
   if (statsLoading || monthlyLoading || routesLoading) {
@@ -65,7 +67,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Viagens Este Mês</p>
                 <p className="text-2xl font-bold" data-testid="text-monthly-trips">
-                  {stats?.monthlyTrips || 0}
+                  {stats?.monthlyTrips ?? 0}
                 </p>
               </div>
               <div className="gradient-bg w-10 h-10 rounded-lg flex items-center justify-center">
@@ -81,7 +83,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">KM Total</p>
                 <p className="text-2xl font-bold" data-testid="text-total-km">
-                  {stats?.totalKm?.toLocaleString('pt-BR') || 0}
+                  {stats?.totalKm?.toLocaleString('pt-BR') ?? 0}
                 </p>
               </div>
               <div className="bg-accent w-10 h-10 rounded-lg flex items-center justify-center">
@@ -97,7 +99,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Gasto Total</p>
                 <p className="text-2xl font-bold" data-testid="text-total-expenses">
-                  {formatCurrency(parseFloat(stats?.totalExpenses || "0"))}
+                  {formatCurrency(parseFloat(stats?.totalExpenses ?? "0"))}
                 </p>
               </div>
               <div className="success-gradient w-10 h-10 rounded-lg flex items-center justify-center">
@@ -113,7 +115,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Rotas Cadastradas</p>
                 <p className="text-2xl font-bold" data-testid="text-total-routes">
-                  {stats?.totalRoutes || 0}
+                  {stats?.totalRoutes ?? 0}
                 </p>
               </div>
               <div className="bg-secondary w-10 h-10 rounded-lg flex items-center justify-center">
@@ -133,7 +135,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData?.trips || []}>
+                <LineChart data={monthlyData?.trips ?? []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -157,7 +159,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData?.expenses || []}>
+                <BarChart data={monthlyData?.expenses ?? []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -176,7 +178,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData?.kilometers || []}>
+                <LineChart data={monthlyData?.kilometers ?? []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -202,7 +204,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {topRoutes?.length ? (
-                topRoutes.map((route, index) => (
+                topRoutes.map((route: any, index: number) => (
                   <div 
                     key={`${route.origin}-${route.destination}`}
                     className="flex items-center justify-between p-3 bg-muted rounded-lg"

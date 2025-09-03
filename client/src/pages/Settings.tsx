@@ -13,9 +13,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { apiRequest } from "@/lib/queryClient";
 import { calculateCostPerKm, formatCurrency } from "@/lib/calculations";
 import { Save, Info } from "lucide-react";
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-1";
+import { useAuth } from "@/hooks/useAuth";
 
 const settingsSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -29,17 +27,19 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
+  const { user: authUser } = useAuth();
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/users', MOCK_USER_ID],
+    queryKey: ['/api/users', authUser?.id],
+    enabled: !!authUser?.id,
   });
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      name: user?.name || "",
-      email: user?.email || "",
-      fuelPricePerLiter: parseFloat(user?.fuelPricePerLiter || "6.00"),
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      fuelPricePerLiter: parseFloat(user?.fuelPricePerLiter ?? "6.00"),
     },
   });
 
@@ -48,15 +48,15 @@ export default function Settings() {
     if (user) {
       form.reset({
         name: user.name,
-        email: user.email || "",
-        fuelPricePerLiter: parseFloat(user.fuelPricePerLiter || "6.00"),
+        email: user.email ?? "",
+        fuelPricePerLiter: parseFloat(user.fuelPricePerLiter ?? "6.00"),
       });
     }
   }, [user, form]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
-      return apiRequest('PUT', `/api/users/${MOCK_USER_ID}`, {
+      return apiRequest('PUT', `/api/users/${authUser?.id}`, {
         ...data,
         fuelPricePerLiter: data.fuelPricePerLiter.toString(),
         darkMode: theme === "dark",
